@@ -14,7 +14,8 @@ let gameOptions = {
     spawnRange: [80, 300],
 
     // platform width range, in pixels
-    platformSizeRange: [90, 300],
+    platformSizeRange: [90, 600],
+    //platformSizeRange: [90, 300],
 
     // a height range between rightmost platform and next platform to be spawned
     platformHeightRange: [-5, 5],
@@ -23,7 +24,8 @@ let gameOptions = {
     platformHeighScale: 20,
 
     // platform max and min height, as screen height ratio
-    platformVerticalLimit: [0.4, 0.8],
+    platformVerticalLimit: [0.3, 0.9],
+    // platformVerticalLimit: [0.4, 0.8],
 
     // player gravity
     playerGravity: 900,
@@ -38,7 +40,7 @@ let gameOptions = {
     jumps: 5,
 
     // % of probability a coin appears on the platform
-    coinPercent: 25,
+    coinPercent: 75,
 
     // % of probability a fire appears on the platform
     firePercent: 25
@@ -85,7 +87,7 @@ class preloadGame extends Phaser.Scene{
             frameHeight: 20
         });
 
-        // the firecamp is a sprite sheet made by 32x58 pixels
+        // the fire is a sprite sheet made by 32x58 pixels
         this.load.spritesheet("fire", "fire.png", {
             frameWidth: 40,
             frameHeight: 70
@@ -183,7 +185,7 @@ class playGame extends Phaser.Scene{
             }
         });
 
-        // group with all active firecamps.
+        // group with all active fires.
         this.fireGroup = this.add.group({
 
             // once a firecamp is removed, it's added to the pool
@@ -321,14 +323,16 @@ class playGame extends Phaser.Scene{
                 if(this.coinPool.getLength()){
                     let coin = this.coinPool.getFirst();
                     coin.x = posX;
-                    coin.y = posY - 96;
+                    coin.y = posY - 50; //coin height off platform
+                    // coin.y = posY - 96;
                     coin.alpha = 1;
                     coin.active = true;
                     coin.visible = true;
                     this.coinPool.remove(coin);
                 }
                 else{
-                    let coin = this.physics.add.sprite(posX, posY - 96, "coin");
+                    let coin = this.physics.add.sprite(posX, posY - 50, "coin"); //coin height off platform
+                    // let coin = this.physics.add.sprite(posX, posY - 96, "coin");
                     coin.setImmovable(true);
                     coin.setVelocityX(platform.body.velocity.x);
                     coin.anims.play("rotate");
