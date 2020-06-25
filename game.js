@@ -53,6 +53,7 @@ window.onload = function() {
         type: Phaser.AUTO,
         width: 1334,
         height: 750,
+        // scene: [preloadGame, playGame, endGame],
         scene: [preloadGame, playGame],
         backgroundColor: 0x0c88c7,
 
@@ -136,6 +137,7 @@ class preloadGame extends Phaser.Scene{
         });
 
         this.scene.start("PlayGame");
+
     }
 }
 
@@ -145,6 +147,14 @@ class playGame extends Phaser.Scene{
         super("PlayGame");
     }
     create(){
+
+        //var score text
+        var score = 0;
+        var scoreText;
+        // var finalScoreText;
+
+        //generates the score text
+        scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000'});
 
         // group with all active mountains.
         this.mountainGroup = this.add.group();
@@ -232,23 +242,33 @@ class playGame extends Phaser.Scene{
             }
         }, null, this);
 
-        // setting collisions between the player and the coin group
+        // setting collisions between the player and the coin group, adding to score
         this.physics.add.overlap(this.player, this.coinGroup, function(player, coin){
+            
+            coin.disableBody(true, true);
 
-            this.tweens.add({
-                targets: coin,
-                y: coin.y - 100,
-                alpha: 0,
-                duration: 800,
-                ease: "Cubic.easeOut",
-                callbackScope: this,
-                onComplete: function(){
-                    this.coinGroup.killAndHide(coin);
-                    this.coinGroup.remove(coin);
-                }
-            });
+            score += 10;
+            scoreText.setText("Score: " + score);
 
-        }, null, this);
+            
+            }, null, this);
+
+        // this.physics.add.overlap(this.player, this.coinGroup, function(player, coin){
+
+        //     this.tweens.add({
+        //         targets: coin,
+        //         y: coin.y - 100,
+        //         alpha: 0,
+        //         duration: 800,
+        //         ease: "Cubic.easeOut",
+        //         callbackScope: this,
+        //         onComplete: function(){
+        //             this.coinGroup.killAndHide(coin);
+        //             this.coinGroup.remove(coin);
+        //         }
+        //     });
+
+        // }, null, this);
 
         // setting collisions between the player and the fire group
         this.physics.add.overlap(this.player, this.fireGroup, function(player, fire){
@@ -263,6 +283,7 @@ class playGame extends Phaser.Scene{
 
         // checking for input, tap or click mouse
         this.input.on("pointerdown", this.jump, this);
+
     }
 
     // adding mountains
@@ -383,8 +404,14 @@ class playGame extends Phaser.Scene{
     update(){
 
         // game over
+        // if(this.player.y > game.config.height){
+        //     this.scene.start("PlayGame");
+        // }
+
+        // temporary game over
         if(this.player.y > game.config.height){
-            this.scene.start("PlayGame");
+            this.scene.pause("PlayGame");
+            // finalScoreText = this.add.text(windowWidth/2, windowHeight/2, 'Score: ' + score, { fontSize: '32px', fill: '#000'});
         }
 
         this.player.x = gameOptions.playerStartPosition;
@@ -445,6 +472,16 @@ class playGame extends Phaser.Scene{
         }
     }
 };
+
+// class endGame extends Phaser.Scene{
+//     constructor(){
+//         super("EndGame");
+//     }
+//     create(){
+//         scoreText.setText("Score: " + score);
+//     }
+// };
+
 function resize(){
     let canvas = document.querySelector("canvas");
     let windowWidth = window.innerWidth;
