@@ -15,6 +15,7 @@ let gameOptions = {
 
     // platform width range, in pixels
     platformSizeRange: [90, 600],
+    //platformSizeRange: [90, 300],
 
     // a height range between rightmost platform and next platform to be spawned
     platformHeightRange: [-5, 5],
@@ -23,12 +24,11 @@ let gameOptions = {
     platformHeighScale: 20,
 
     // platform max and min height, as screen height ratio
-    platformVerticalLimit: [0.1, 0.9],
+    platformVerticalLimit: [0.3, 0.9],
     // platformVerticalLimit: [0.4, 0.8],
 
     // player gravity
-    playerGravity: 700,
-    // playerGravity: 900,
+    playerGravity: 800,
 
     // player jump force
     jumpForce: 400,
@@ -38,11 +38,10 @@ let gameOptions = {
 
     // consecutive jumps allowed
     jumps: 4,
-    // jumps: 2,
 
     // % of probability a coin appears on the platform
-    coinPercent: 100
-    // coinPercent: 25
+    coinPercent: 75,
+
 }
 
 window.onload = function() {
@@ -52,6 +51,7 @@ window.onload = function() {
         type: Phaser.AUTO,
         width: 1334,
         height: 750,
+        // scene: [preloadGame, playGame, endGame],
         scene: [preloadGame, playGame],
         backgroundColor: 0x0c88c7,
 
@@ -118,6 +118,7 @@ class preloadGame extends Phaser.Scene{
         });
 
         this.scene.start("PlayGame");
+
     }
 }
 
@@ -128,11 +129,12 @@ class playGame extends Phaser.Scene{
     }
     create(){
 
-        // var score text
+        //var score text
         var score = 0;
         var scoreText;
+        // var finalScoreText;
 
-        // generates the score text
+        //generates the score text
         scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000'});
 
         // group with all active mountains.
@@ -191,8 +193,11 @@ class playGame extends Phaser.Scene{
         this.player.setGravityY(gameOptions.playerGravity);
         this.player.setDepth(2);
 
+        // the player is not dying
+        this.dying = false;
+
         // setting collisions between the player and the platform group
-        this.physics.add.collider(this.player, this.platformGroup, function(){
+        this.platformCollider = this.physics.add.collider(this.player, this.platformGroup, function(){
 
             // play "run" animation if the player is on a platform
             if(!this.player.anims.isPlaying){
@@ -211,8 +216,8 @@ class playGame extends Phaser.Scene{
             
             }, null, this);
 
-        // // setting collisions between the player and the coin group
         // this.physics.add.overlap(this.player, this.coinGroup, function(player, coin){
+
         //     this.tweens.add({
         //         targets: coin,
         //         y: coin.y - 100,
@@ -225,11 +230,8 @@ class playGame extends Phaser.Scene{
         //             this.coinGroup.remove(coin);
         //         }
         //     });
-        // }, null, this);
 
-        // checking for input
-        this.input.on("pointerdown", this.jump, this);
-    }
+        // }, null, this);
 
     // adding mountains
     addMountains(){
@@ -281,13 +283,15 @@ class playGame extends Phaser.Scene{
         }
         this.nextPlatformDistance = Phaser.Math.Between(gameOptions.spawnRange[0], gameOptions.spawnRange[1]);
 
-        // is there a coin over the platform?
+        // if this is not the starting platform...
         if(this.addedPlatforms > 1){
+
+            // is there a coin over the platform?
             if(Phaser.Math.Between(1, 100) <= gameOptions.coinPercent){
                 if(this.coinPool.getLength()){
                     let coin = this.coinPool.getFirst();
                     coin.x = posX;
-                    coin.y = posY - 50;
+                    coin.y = posY - 50; //coin height off platform
                     // coin.y = posY - 96;
                     coin.alpha = 1;
                     coin.active = true;
@@ -295,7 +299,7 @@ class playGame extends Phaser.Scene{
                     this.coinPool.remove(coin);
                 }
                 else{
-                    let coin = this.physics.add.sprite(posX, posY - 50, "coin");
+                    let coin = this.physics.add.sprite(posX, posY - 50, "coin"); //coin height off platform
                     // let coin = this.physics.add.sprite(posX, posY - 96, "coin");
                     coin.setImmovable(true);
                     coin.setVelocityX(platform.body.velocity.x);
@@ -308,8 +312,9 @@ class playGame extends Phaser.Scene{
     }
 
     // the player jumps when on the ground, or once in the air as long as there are jumps left and the first jump was on the ground
+    // and obviously if the player is not dying
     jump(){
-        if(this.player.body.touching.down || (this.playerJumps > 0 && this.playerJumps < gameOptions.jumps)){
+        if((!this.dying) && (this.player.body.touching.down || (this.playerJumps > 0 && this.playerJumps < gameOptions.jumps))){
             if(this.player.body.touching.down){
                 this.playerJumps = 0;
             }
@@ -324,9 +329,16 @@ class playGame extends Phaser.Scene{
     update(){
 
         // game over
+        // if(this.player.y > game.config.height){
+        //     this.scene.start("PlayGame");
+        // }
+
+        // temporary game over
         if(this.player.y > game.config.height){
-            this.scene.start("PlayGame");
+            this.scene.pause("PlayGame");
+            // finalScoreText = this.add.text(windowWidth/2, windowHeight/2, 'Score: ' + score, { fontSize: '32px', fill: '#000'});
         }
+
         this.player.x = gameOptions.playerStartPosition;
 
         // recycling platforms
@@ -377,6 +389,16 @@ class playGame extends Phaser.Scene{
         }
     }
 };
+
+// class endGame extends Phaser.Scene{
+//     constructor(){
+//         super("EndGame");
+//     }
+//     create(){
+//         scoreText.setText("Score: " + score);
+//     }
+// };
+
 function resize(){
     let canvas = document.querySelector("canvas");
     let windowWidth = window.innerWidth;
