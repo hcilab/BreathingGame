@@ -4,7 +4,7 @@ let game;
 let gameOptions = {
 
     // platform speed range, in pixels per second
-    platformSpeedRange: [300, 300],
+    platformSpeedRange: [200, 200],
 
     // mountain speed, in pixels per second
     mountainSpeed: 80,
@@ -72,7 +72,11 @@ class preloadGame extends Phaser.Scene{
         super("PreloadGame");
     }
     preload(){
+        // platform sprites
         this.load.image("platform", "platform.png");
+
+        // ground sprites
+        // this.load.image("ground", "platform.png");
 
         // player is a sprite sheet made by 24x48 pixels
         this.load.spritesheet("player", "player.png", {
@@ -135,6 +139,12 @@ class playGame extends Phaser.Scene{
         // generates the score text
         scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#000'});
 
+        // adding ground
+        // this.ground = game.add.tileSprite(0,game.height*.9,game.width,50,"ground");
+        // this.ground.autoScroll(-150,0);
+
+        // this.ground.body.immovable = true;
+
         // group with all active mountains.
         this.mountainGroup = this.add.group();
 
@@ -186,6 +196,8 @@ class playGame extends Phaser.Scene{
         // adding a platform to the game, the arguments are platform width, x position and y position
         this.addPlatform(game.config.width, game.config.width / 2, game.config.height * gameOptions.platformVerticalLimit[1]);
 
+
+
         // adding the player;
         this.player = this.physics.add.sprite(gameOptions.playerStartPosition, game.config.height * 0.7, "player");
         this.player.setGravityY(gameOptions.playerGravity);
@@ -200,6 +212,15 @@ class playGame extends Phaser.Scene{
             }
         }, null, this);
 
+        // setting collisions between the player and the ground
+        // this.physics.add.collider(this.player, this.ground, function(){
+
+        //     // play "run" animation if the player is on a platform
+        //     if(!this.player.anims.isPlaying){
+        //         this.player.anims.play("run");
+        //     }
+        // }, null, this);
+
         // setting collisions between the player and the coin group, adding to score
         this.physics.add.overlap(this.player, this.coinGroup, function(player, coin){
             
@@ -211,7 +232,7 @@ class playGame extends Phaser.Scene{
             
             }, null, this);
 
-        // // setting collisions between the player and the coin group
+        // /OLD SETTINGS FOR COIN COLLECTING
         // this.physics.add.overlap(this.player, this.coinGroup, function(player, coin){
         //     this.tweens.add({
         //         targets: coin,
@@ -288,7 +309,6 @@ class playGame extends Phaser.Scene{
                     let coin = this.coinPool.getFirst();
                     coin.x = posX;
                     coin.y = posY - 50;
-                    // coin.y = posY - 96;
                     coin.alpha = 1;
                     coin.active = true;
                     coin.visible = true;
@@ -296,7 +316,6 @@ class playGame extends Phaser.Scene{
                 }
                 else{
                     let coin = this.physics.add.sprite(posX, posY - 50, "coin");
-                    // let coin = this.physics.add.sprite(posX, posY - 96, "coin");
                     coin.setImmovable(true);
                     coin.setVelocityX(platform.body.velocity.x);
                     coin.anims.play("rotate");
